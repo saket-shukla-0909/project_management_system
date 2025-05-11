@@ -30,11 +30,23 @@ exports.createCompany = async (req, res) => {
 
 exports.getAllCompany = async (req, res) => {
   try {
-    const companies = await Company.find();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalCompanies = await Company.countDocuments();
+    const totalPages = Math.ceil(totalCompanies / limit);
+
+    const companies = await Company.find()
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
       message: 'Companies fetched successfully',
-      companies
+      currentPage: page,
+      totalPages: totalPages,
+      totalCompanies: totalCompanies,
+      companies: companies
     });
   } catch (err) {
     res.status(500).json({
@@ -43,6 +55,7 @@ exports.getAllCompany = async (req, res) => {
     });
   }
 };
+
 
 exports.getById = async (req, res) => {
   const { id } = req.params; 
